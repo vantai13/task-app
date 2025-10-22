@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  web:
+    build: .
+    container_name: taking-note-app
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+    volumes:
+      - .:/app                  # Mount code (dev)
+      - note_data:/app/instance # Persist database SQLite
+    restart: always
+
+volumes:
+  note_data:

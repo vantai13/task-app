@@ -1,0 +1,43 @@
+# ========================
+# Terraform
+# ========================
+# Bỏ qua thư mục .terraform chứa các provider đã tải về
+**/.terraform/
+
+# Bỏ qua các file trạng thái chứa thông tin nhạy cảm về hạ tầng
+*.tfstate
+*.tfstate.*
+
+# Bỏ qua các file biến, thường chứa thông tin bí mật
+# Nếu bạn muốn chia sẻ cấu trúc file biến, hãy tạo file *.tfvars.example
+*.tfvars
+
+# Bỏ qua file lock và các file log khi có lỗi
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ========================
+# Sensitive Files & Keys
+# ========================
+# Bỏ qua các file key cá nhân
+*.pem
+*.key
+terraform/keypair/udemy-key
+
+# ========================
+# Python
+# ========================
+# Bỏ qua các file cache do Python sinh ra
+__pycache__/
+*.py[cod]
+
+# ========================
+# OS Generated Files
+# ========================
+# Bỏ qua các file hệ thống của macOS và Windows
+.DS_Store
+Thumbs.db
