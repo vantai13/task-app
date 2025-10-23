@@ -2,8 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from os import path
 from flask_login import LoginManager
-<<<<<<< HEAD
-=======
+
+
 import random
 import os
 
@@ -31,14 +31,13 @@ def get_server_color():
 
 # 3. Đặt màu MỘT LẦN DUY NHẤT khi server khởi động
 SERVER_COLOR = get_server_color()
->>>>>>> 19ca715 (add random color)
+
 
 db = SQLAlchemy()
 DB_NAME = "database.db"
 
 
-=======
->>>>>>> 19ca715 (add random color)
+
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
@@ -64,14 +63,14 @@ def create_app():
     def load_user(id):
         return User.query.get(int(id))
 
-<<<<<<< HEAD
-=======
+
+
     @app.context_processor
     def inject_server_color():
         """Tiêm biến server_color vào mọi template"""
         return dict(server_color=SERVER_COLOR)
 
->>>>>>> 19ca715 (add random color)
+
     return app
 
 

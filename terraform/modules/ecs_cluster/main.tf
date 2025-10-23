@@ -5,54 +5,55 @@ resource "aws_ecs_cluster" "taking_note_app_ecs_cluster" {
 
 resource "aws_ecs_task_definition" "taking_note_app_task_definition" {
   family                   = "taking-note-app-task-def"
-  execution_role_arn       = aws_iam_role.task_execution_role.arn
+  execution_role_arn       = aws_iam_role.task_execution_role.arn # Make sure this role exists
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
-  memory                   = "1024"
+  memory                   = "2048" # Keep the increased memory
 
-  # 1. KHỐI "volume" PHẢI NẰM Ở CẤP NÀY
-  dynamic "volume" {
-    for_each = var.efs_file_system_id != null ? [1] : []
-    content {
-      name = "efs-volume"
-      efs_volume_configuration {
-        file_system_id     = var.efs_file_system_id
-        transit_encryption = "ENABLED"
-        authorization_config {
-          access_point_id = var.efs_access_point_id
-        }
-      }
-    }
-  }
-
-  # 2. "container_definitions" LÀ MỘT CHUỖI JSON DUY NHẤT
   container_definitions = jsonencode([
     {
       name      = "taking-note-app-container"
-      image     = var.taking_note_app_ecr_repository_uri
+      image     = var.taking_note_app_ecr_repository_uri # Correct variable name is likely var.taking_note_app_ecr_repository_uri based on your previous code
       cpu       = 512
-      memory    = 1024
+      memory    = 1024 # You might need to adjust this based on app needs
       portMappings = [
         {
           containerPort = 5000
           hostPort      = 5000
         }
       ],
-      mountPoints = [
-        {
-          sourceVolume  = "efs-volume",
-          containerPath = "/app/data" # Đường dẫn trong container để chứa file SQLite
-        }
-      ],
-      logConfiguration = {
+
+      logConfiguration = { # Keep log configuration
         logDriver = "awslogs",
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.taking_note_app_log_group.name,
+          "awslogs-group"         = aws_cloudwatch_log_group.taking_note_app_log_group.name, # Ensure this log group exists
           "awslogs-region"        = var.region,
           "awslogs-stream-prefix" = "taking-note-app-container"
         }
-      }
+      },
+
+      #  ADD Environment variables and Secrets for DB connection
+      environment = [
+        {
+          "name" : "DB_ENDPOINT",
+          "value" : var.db_endpoint # Lấy từ input mới
+        },
+        {
+          "name" : "DB_NAME",
+          "value" : var.db_name # Lấy từ input mới
+        }
+      ],
+      secrets = [
+        {
+          "name" : "DB_USER",
+          "valueFrom" : "${var.db_secret_arn}:username::" # Lấy từ input mới
+        },
+        {
+          "name" : "DB_PASSWORD",
+          "valueFrom" : "${var.db_secret_arn}:password::" # Lấy từ input mới
+        }
+      ]
     }
   ])
 }
@@ -85,32 +86,24 @@ resource "aws_iam_policy" "task_execution_policy" {
   name        = "taking-note-app-task-execution-policy"
   description = "Policy for ECS task execution role"
 
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ecr:GetAuthorizationToken",
-        "ecr:BatchCheckLayerAvailability",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:GetRepositoryPolicy",
-        "ecr:DescribeRepositories",
-        "ecr:ListImages",
-        "ecr:DescribeImages",
-        "ecr:BatchGetImage",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "elasticfilesystem:ClientMount",
-        "elasticfilesystem:ClientWrite",
-        "elasticfilesystem:DescribeMountTargets"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-POLICY
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "secretsmanager:GetSecretValue" # Thêm quyền đọc Secret
+        ],
+        Resource = "*" 
+      },
+    ]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "task_execution_policy_attachment" {

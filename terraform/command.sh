@@ -1,12 +1,10 @@
-#Require: re-use keypair from terraform section.
-
-#Commands Terraform:
-cd singapore-dev
-#Chỉnh sửa file sau: singapore-dev/terraform.tfvars
-#Dòng 8: ecr_repo_url ->chỉnh sửa thành url ECR repository của bạn ví dụ:
-680780727991.dkr.ecr.ap-southeast-1.amazonaws.com/nodejs-random-color:ver-5
 
 terraform init
 terraform plan --var-file "terraform.tfvars"
 terraform apply --var-file "terraform.tfvars"
 terraform destroy --var-file "terraform.tfvars"
+
+# ssh basetion host 
+#ssh -i <Đường_dẫn_Private_Key> -N -L 3307:<RDS_Endpoint>:3306 ec2-user@<Bastion_Public_IP>
+
+ssh -i  -N -L 3307:taking-note-db.chi0awig8v33.ap-southeast-1.rds.amazonaws.com:3306 ec2-user@54.151.215.184

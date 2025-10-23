@@ -32,7 +32,7 @@ resource "aws_lb_target_group" "taking_note_app_target_group" {
   vpc_id      = var.vpc_id
   target_type = "ip"
   health_check {
-    path                = "/"
+    path                = "/health"
     protocol            = "HTTP"
     port                = "5000"
     healthy_threshold   = 2

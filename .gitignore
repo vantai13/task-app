@@ -1,43 +1,48 @@
-# ========================
-# Terraform
-# ========================
-# Bỏ qua thư mục .terraform chứa các provider đã tải về
-**/.terraform/
-
-# Bỏ qua các file trạng thái chứa thông tin nhạy cảm về hạ tầng
-*.tfstate
-*.tfstate.*
-
-# Bỏ qua các file biến, thường chứa thông tin bí mật
-# Nếu bạn muốn chia sẻ cấu trúc file biến, hãy tạo file *.tfvars.example
+# --- Terraform ---
+# Local Terraform state, plugins, and provider files
+.terraform/
+# Lock file should usually be committed, but ignore if needed for specific workflows
+# .terraform.lock.hcl
+# Terraform state files (!!! CRITICAL TO IGNORE !!!)
+terraform.tfstate
+terraform.tfstate.*
+# Terraform plan files (can contain sensitive info)
+*.tfplan
+# Variable files containing sensitive values (like passwords, ARNs)
 *.tfvars
-
-# Bỏ qua file lock và các file log khi có lỗi
-.terraform.lock.hcl
-crash.log
+# Override files
 override.tf
 override.tf.json
-*_override.tf
-*_override.tf.json
+*.override.tf
+*.override.tf.json
+# CLI configuration files
+.terraformrc
+terraform.rc
 
-# ========================
-# Sensitive Files & Keys
-# ========================
-# Bỏ qua các file key cá nhân
-*.pem
-*.key
-terraform/keypair/udemy-key
-
-# ========================
-# Python
-# ========================
-# Bỏ qua các file cache do Python sinh ra
+# --- Python ---
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+# Virtual environment folders
+.venv/
+venv/
+env/
+# Environment variables file (often contains secrets)
+.env
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
 
-# ========================
-# OS Generated Files
-# ========================
-# Bỏ qua các file hệ thống của macOS và Windows
-.DS_Store
-Thumbs.db
+# --- IDEs / Editors ---
+.vscode/
+.idea/
+
+# --- OS generated files ---
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# --- Log files ---
+*.log
