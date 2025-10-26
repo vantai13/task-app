@@ -18,3 +18,8 @@ variable "load_balance_security_group_ids" {
   description = "List of security group that applied to Application Load Balancer"
   nullable = false
 }
+
+variable "certificate_arn" {
+  description = "ARN của chứng chỉ ACM để dùng cho HTTPS"
+  type        = string
+}

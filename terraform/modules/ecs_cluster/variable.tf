@@ -35,17 +35,7 @@ variable "taking_note_app_ecr_repository_uri" {
   nullable = false
 }
 
-variable "efs_file_system_id" {
-  description = "The ID of the EFS File System"
-  type        = string
-  default     = null # Để null để module vẫn chạy được nếu không có EFS
-}
 
-variable "efs_access_point_id" {
-  description = "The ID of the EFS Access Point"
-  type        = string
-  default     = null # Để null để module vẫn chạy được nếu không có EFS
-}
 
 variable "db_endpoint" {
   description = "Database connection endpoint"

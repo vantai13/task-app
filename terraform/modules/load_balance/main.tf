@@ -15,13 +15,31 @@ resource "aws_lb" "load_balancer" {
 }
 
 #Load Balancer Listener
-resource "aws_lb_listener" "listener" {
+resource "aws_lb_listener" "listener_https" {
   load_balancer_arn = aws_lb.load_balancer.arn
-  port              = "80"
-  protocol          = "HTTP"
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08" # Một chính sách SSL tốt
+  certificate_arn   = var.certificate_arn       # Sử dụng chứng chỉ bạn truyền vào
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.taking_note_app_target_group.arn
+  }
+}
+
+resource "aws_lb_listener" "listener_http_redirect" {
+  load_balancer_arn = aws_lb.load_balancer.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301" # Chuyển hướng vĩnh viễn
+    }
   }
 }
 #Target Group
@@ -39,5 +57,12 @@ resource "aws_lb_target_group" "taking_note_app_target_group" {
     unhealthy_threshold = 2
     timeout             = 5
     interval            = 30
+    matcher             = "200,301,302"
   }
+  
+  # stickiness {
+  #   type            = "lb_cookie" # Bảo ALB tự tạo và quản lý cookie
+  #   cookie_duration = 86400       # "Dính" với server đó trong 86400 giây (1 ngày)
+  #   enabled         = true
+  # }
 }

@@ -46,6 +46,7 @@ module "load_balance" {
   load_balance_security_group_ids = [
     module.security.public_security_group_id
   ]
+  certificate_arn = aws_acm_certificate_validation.cert_validation_wait.certificate_arn
 
 }
 
@@ -98,3 +99,62 @@ module "bastion" {
   # ami_id         = "ami-xxxxxxxxxxxxxxxxx" # Có thể override AMI nếu cần
   # instance_type  = "t3.micro"            # Có thể override loại instance nếu cần
 } 
+
+# Lấy zone ID của tên miền vantai.click
+data "aws_route53_zone" "primary" {
+  name         = "vantai.click"
+  private_zone = false
+}
+
+# Tạo chứng chỉ ACM cho tên miền và wildcard
+resource "aws_acm_certificate" "app_cert" {
+  domain_name       = "*.vantai.click"
+  subject_alternative_names = ["vantai.click"]
+  validation_method = "DNS"
+
+  tags = {
+    Name = "vantai-click-cert"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Tạo các bản ghi DNS để xác thực chứng chỉ ACM
+resource "aws_route53_record" "cert_validation" {
+  # Dùng for_each để tạo record cho cả *.vantai.click và vantai.click
+  for_each = {
+    for dvo in aws_acm_certificate.app_cert.domain_validation_options : dvo.domain_name => {
+      name    = dvo.resource_record_name
+      record  = dvo.resource_record_value
+      type    = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.primary.zone_id
+}
+
+# Việc này đảm bảo Terraform không gắn 1 cert chưa valid vào ALB
+resource "aws_acm_certificate_validation" "cert_validation_wait" {
+  certificate_arn         = aws_acm_certificate.app_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
+}
+
+resource "aws_route53_record" "app_dns" {
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = "taking-note-app" # Nó sẽ tự thêm ".vantai.click"
+  type    = "A"
+
+  alias {
+    # Lấy thông tin DNS của ALB từ output của module "load_balance"
+    name                   = module.load_balance.alb_dns_name
+    zone_id                = module.load_balance.alb_zone_id
+    evaluate_target_health = true
+  }
+}
